@@ -4,8 +4,8 @@ Distributed Task Queue based on Celery.
 
 ## Definition
 - celery_app.py: main celery application
-- runner_config.py: config module
-- tasks.py: default task module, extend function here
+- runner_config.py: global config module
+- tasks.py: default task module
 - runner-cli.py: client
 
 ## Usage
@@ -16,7 +16,13 @@ Start worker
 python runner-cli.py worker
 ```
 
-#### Send
+#### Schedule
+Start schedule beat
+```
+python runner-cli.py beat
+```
+
+#### Send Task
 ```
 python runner-cli.py task <module> <function>
 //run task cmd to run 'ls'

@@ -27,16 +27,14 @@ handler.setFormatter(formatter)
 logger = logging.getLogger('main')
 logger.addHandler(handler)
 
-# celery config
-if 'BROKER' in dir(runner_config):
-    broker = runner_config.BROKER
-else:
-    broker = None
-if 'BACKEND' in dir(runner_config):
-    backend = runner_config.BACKEND
-else:
-    backend = None
+taskname = 'tasks'
+if 'CELERY_NAME' in dir(runner_config):
+    taskname = runner_config.CELERY_NAME
+celeryconf = 'celeryconfig'
+if 'CELERY_CONFIG' in dir(runner_config):
+    celeryconf = runner_config.CELERY_CONFIG
 
-app = Celery('tasks', broker=broker, backend=backend)
+app = Celery(taskname)
+app.config_from_object(celeryconf)
 
 import tasks

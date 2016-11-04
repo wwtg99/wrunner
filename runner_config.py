@@ -1,7 +1,7 @@
 # celery config
 CELERY_BIN = 'celery'
-BROKER = 'redis://localhost:6379/3'
-BACKEND = 'redis://localhost:6379/3'
+CELERY_NAME = 'tasks'
+CELERY_CONFIG = 'celeryconfig'
 # log
 LOGGER_FILE = 'worker.log'
 LOGGER_MAX_COUNT = 5
