@@ -1,36 +1,41 @@
-# wwu_runner
+# wrunner
 
-Distributed Task Queue based on Celery.
+Distributed Task Queue and Scheduler based on Celery.
+
+## Installation
+1. Install celery first
+2. Clone project files
+3. Run python wrunner.py
 
 ## Definition
 - celery_app.py: main celery application
 - runner_config.py: global config module
 - tasks.py: default task module
-- runner-cli.py: client
+- wrunner.py: runner client
 
 ## Usage
 
 #### Worker
 Start worker
 ```
-python runner-cli.py worker
+python wrunner.py worker
 ```
 
 #### Schedule
 Start schedule beat
 ```
-python runner-cli.py beat
+python wrunner.py beat
 ```
 
 #### Send Task
 ```
-python runner-cli.py task <module> <function>
+python wrunner.py task <module> <function>
 //run task cmd to run 'ls'
-python runner-cli.py task tasks cmd -p ls
+python wrunner.py task tasks cmd -p ls
 ```
 
 #### Inspect
 Inspect worker
 ```
-python runner-cli.py inspect active
+python wrunner.py inspect active
 ```
