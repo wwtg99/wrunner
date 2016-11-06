@@ -2,6 +2,8 @@ import argparse
 import runner_config
 import json
 import os
+import subprocess
+import signal
 
 
 def parse_args():
@@ -22,31 +24,42 @@ def parse_args():
 
 def worker_mode(argument):
     celery_bin = runner_config.CELERY_BIN
-    cmd = [celery_bin, 'worker', '-A celery_app']
+    c = [celery_bin, 'worker', '-A celery_app']
     if argument.celery_config:
-        cmd.append('--config=%s' % argument.celery_config)
+        c.append('--config=%s' % argument.celery_config)
     if argument.loglevel:
-        cmd.append('--loglevel=%s' % argument.loglevel)
+        c.append('--loglevel=%s' % argument.loglevel)
     if argument.logfile:
-        cmd.append('--logfile=%s' % argument.logfile)
+        c.append('--logfile=%s' % argument.logfile)
     if argument.beat:
-        cmd.append('--beat')
-    c = ' '.join(cmd)
+        c.append('--beat')
+    c = ' '.join(c)
     # print(c)
-    os.system(c)
+    # os.system(c)
+    child = subprocess.Popen(c, shell=True)
+
+    def kill_child(signalnum, frame):
+        child.terminate()
+    signal.signal(signal.SIGINT, kill_child)
+    signal.signal(signal.SIGTERM, kill_child)
+    child.wait()
     return 0
 
 
 def inspect_mode(argument):
     celery_bin = runner_config.CELERY_BIN
-    cmd = [celery_bin, '-A celery_app', 'inspect']
+    c = [celery_bin, '-A celery_app', 'inspect']
     if argument.action:
-        cmd.append(argument.action[0])
+        c.append(argument.action[0])
     if argument.celery_config:
-        cmd.append('--config=%s' % argument.celery_config)
-    c = ' '.join(cmd)
+        c.append('--config=%s' % argument.celery_config)
+    c = ' '.join(c)
     # print(c)
     os.system(c)
+    # child = subprocess.Popen(c, shell=True, stdout=subprocess.PIPE)
+    # child.wait()
+    # out = child.communicate()
+    # print(out)
     return 0
 
 
@@ -63,7 +76,14 @@ def beat_mode(argument):
         cmd.append('--schedule=%s' % argument.schedule)
     c = ' '.join(cmd)
     # print(c)
-    os.system(c)
+    # os.system(c)
+    child = subprocess.Popen(c, shell=True)
+
+    def kill_child(signalnum, frame):
+        child.terminate()
+    signal.signal(signal.SIGINT, kill_child)
+    signal.signal(signal.SIGTERM, kill_child)
+    child.wait()
     return 0
 
 
