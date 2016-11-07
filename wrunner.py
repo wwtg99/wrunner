@@ -9,16 +9,17 @@ import signal
 def parse_args():
     parser = argparse.ArgumentParser(prog='wwu_runner', description='Job runner based on celery')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.1.0')
-    parser.add_argument('mode', help='Work mode', choices=['worker', 'inspect', 'beat', 'task'])
+    parser.add_argument('mode', help='Work mode', choices=['worker', 'inspect', 'beat', 'task', 'log'])
     parser.add_argument('action', help='Mode action', nargs='*')
     parser.add_argument('--workdir', help='Work directory')
     parser.add_argument('--celery-config', help='Name of celery config module.')
     parser.add_argument('--loglevel', help='Logging level for celery.', choices=['DEBUG', 'INFO', 'ERROR', 'CRITICAL', 'FATAL'])
     parser.add_argument('--logfile', help='Path to log file for celery. If no logfile is specified, stderr is used.')
-    parser.add_argument('-B', '--beat', action="store_true", help='Also run the celery beat periodic task scheduler.')
-    parser.add_argument('-s', '--schedule', help='Schedule file for celery beat.')
+    parser.add_argument('-B', '--beat', action="store_true", help='Also run the celery beat periodic task scheduler for worker mode.')
+    parser.add_argument('-s', '--schedule', help='Schedule file for celery beat for beat mode.')
     parser.add_argument('-p', '--param', help='Task param for task mode only.')
-    parser.add_argument('--param-type', help='Task param type.', default='string')
+    parser.add_argument('--param-type', help='Task param type, default string.', default='string')
+    parser.add_argument('-f', '--follow', action="store_true", help='Follow log tail for log mode.')
     return parser.parse_args()
 
 
@@ -29,6 +30,8 @@ def worker_mode(argument):
         c.append('--config=%s' % argument.celery_config)
     if argument.loglevel:
         c.append('--loglevel=%s' % argument.loglevel)
+    else:
+        c.append('--loglevel=INFO')
     if argument.logfile:
         c.append('--logfile=%s' % argument.logfile)
     if argument.beat:
@@ -39,7 +42,7 @@ def worker_mode(argument):
     child = subprocess.Popen(c, shell=True)
 
     def kill_child(signalnum, frame):
-        child.terminate()
+        child.send_signal(signalnum)
     signal.signal(signal.SIGINT, kill_child)
     signal.signal(signal.SIGTERM, kill_child)
     child.wait()
@@ -80,7 +83,7 @@ def beat_mode(argument):
     child = subprocess.Popen(c, shell=True)
 
     def kill_child(signalnum, frame):
-        child.terminate()
+        child.send_signal(signalnum)
     signal.signal(signal.SIGINT, kill_child)
     signal.signal(signal.SIGTERM, kill_child)
     child.wait()
@@ -105,10 +108,35 @@ def task_mode(argument):
     if p and ptype == 'json':
         p = json.loads(p)
     if callable(f):
-        print('Run task %s' % func)
-        print('Use module %s' % modu)
-        print('Use function %s' % func)
+        print('Send task %s.%s' % (modu, func))
+        print('Use params %s' % argument.param)
         f.delay(p)
+    return 0
+
+
+def log_mode(argument):
+    logf = 'worker.log'
+    if 'LOGGER_FILE' in dir(runner_config):
+        logf = runner_config.LOGGER_FILE
+    follow = False
+    if argument.follow:
+        follow = True
+    if os.path.exists(logf):
+        if follow:
+            child = subprocess.Popen('tail -f %s' % logf, shell=True)
+
+            def kill_child(signalnum, frame):
+                child.send_signal(signalnum)
+            signal.signal(signal.SIGINT, kill_child)
+            signal.signal(signal.SIGTERM, kill_child)
+            child.wait()
+        else:
+            fh = open(logf)
+            for l in fh:
+                print(l)
+            fh.close()
+    else:
+        print('Log file %s does not exists!' % logf)
     return 0
 
 
@@ -124,6 +152,8 @@ if __name__ == '__main__':
         re = beat_mode(args)
     elif args.mode == 'task':
         re = task_mode(args)
+    elif args.mode == 'log':
+        re = log_mode(args)
     else:
         re = 0
     exit(re)

@@ -19,23 +19,33 @@ Distributed Task Queue and Scheduler based on Celery.
 Start worker
 ```
 python wrunner.py worker
+python wrunner.py worker --logfile=worker.log //use specific log file
+python wrunner.py worker -B //also run beat scheduler
 ```
 
 #### Schedule
 Start schedule beat
 ```
 python wrunner.py beat
+python wrunner.py beat -s aaa //use aaa to name beat schedule file
 ```
 
 #### Send Task
 ```
 python wrunner.py task <module> <function>
-//run task cmd to run 'ls'
+//send task cmd to run 'ls'
 python wrunner.py task tasks cmd -p ls
 ```
 
 #### Inspect
 Inspect worker
 ```
-python wrunner.py inspect active
+python wrunner.py inspect active //more command see celery inspect --help
+```
+
+#### Log
+View log
+```
+python wrunner.py log
+python wrunner.py log -f //follow log tail
 ```
