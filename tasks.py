@@ -1,8 +1,8 @@
 from celery_app import app
 from celery_app import logger
 import time
-import os
 import datetime
+import utils
 
 
 @app.task
@@ -35,8 +35,7 @@ def cmd(args):
     if c:
         print('run command %s' % c)
         logger.info('run command %s' % c)
-        f = os.popen(c)
-        res = f.read()
+        res = utils.popen(c)
         logger.info(res)
     return res
 
@@ -129,8 +128,7 @@ def backup_pgsql(args):
     c.append(dbname)
     c = ' '.join(c)
     print('Run command %s' % c)
-    f = os.popen(c)
-    res = f.read()
+    res = utils.popen(c)
     return res
 
 
@@ -178,11 +176,11 @@ def backup_mysql(args):
         c.append(' > %s' % outf)
     c = ' '.join(c)
     print('Run command %s' % c)
-    f = os.popen(c)
-    res = f.read()
+    res = utils.popen(c)
     return res
 
 
+@app.task
 def export_docker(args):
     """
     Export docker container.
@@ -206,6 +204,5 @@ def export_docker(args):
     c.append(args['container'])
     c = ' '.join(c)
     print('Run command %s' % c)
-    f = os.popen(c)
-    res = f.read()
+    res = utils.popen(c)
     return res

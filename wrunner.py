@@ -2,8 +2,7 @@ import argparse
 import runner_config
 import json
 import os
-import subprocess
-import signal
+import utils
 
 
 def parse_args():
@@ -12,6 +11,7 @@ def parse_args():
     parser.add_argument('mode', help='Work mode', choices=['worker', 'inspect', 'beat', 'task', 'log'])
     parser.add_argument('action', help='Mode action', nargs='*')
     parser.add_argument('--workdir', help='Work directory')
+    parser.add_argument('--celery', help='Path of celery executable.')
     parser.add_argument('--celery-config', help='Name of celery config module.')
     parser.add_argument('--loglevel', help='Logging level for celery.', choices=['DEBUG', 'INFO', 'ERROR', 'CRITICAL', 'FATAL'])
     parser.add_argument('--logfile', help='Path to log file for celery. If no logfile is specified, stderr is used.')
@@ -29,23 +29,15 @@ def worker_mode(argument):
     if argument.celery_config:
         c.append('--config=%s' % argument.celery_config)
     if argument.loglevel:
-        c.append('--loglevel=%s' % argument.loglevel)
+        c.append('--loglevel=%s' % runner_config.LOGGER_LEVEL)
     else:
         c.append('--loglevel=INFO')
     if argument.logfile:
-        c.append('--logfile=%s' % argument.logfile)
+        c.append('--logfile=%s' % runner_config.LOGGER_FILE)
     if argument.beat:
         c.append('--beat')
     c = ' '.join(c)
-    # print(c)
-    # os.system(c)
-    child = subprocess.Popen(c, shell=True)
-
-    def kill_child(signalnum, frame):
-        child.send_signal(signalnum)
-    signal.signal(signal.SIGINT, kill_child)
-    signal.signal(signal.SIGTERM, kill_child)
-    child.wait()
+    utils.popen(c)
     return 0
 
 
@@ -57,12 +49,7 @@ def inspect_mode(argument):
     if argument.celery_config:
         c.append('--config=%s' % argument.celery_config)
     c = ' '.join(c)
-    # print(c)
     os.system(c)
-    # child = subprocess.Popen(c, shell=True, stdout=subprocess.PIPE)
-    # child.wait()
-    # out = child.communicate()
-    # print(out)
     return 0
 
 
@@ -78,15 +65,7 @@ def beat_mode(argument):
     if argument.schedule:
         cmd.append('--schedule=%s' % argument.schedule)
     c = ' '.join(cmd)
-    # print(c)
-    # os.system(c)
-    child = subprocess.Popen(c, shell=True)
-
-    def kill_child(signalnum, frame):
-        child.send_signal(signalnum)
-    signal.signal(signal.SIGINT, kill_child)
-    signal.signal(signal.SIGTERM, kill_child)
-    child.wait()
+    utils.popen(c)
     return 0
 
 
@@ -123,13 +102,8 @@ def log_mode(argument):
         follow = True
     if os.path.exists(logf):
         if follow:
-            child = subprocess.Popen('tail -f %s' % logf, shell=True)
-
-            def kill_child(signalnum, frame):
-                child.send_signal(signalnum)
-            signal.signal(signal.SIGINT, kill_child)
-            signal.signal(signal.SIGTERM, kill_child)
-            child.wait()
+            c = 'tail -f %s' % logf
+            utils.popen(c)
         else:
             fh = open(logf)
             for l in fh:
@@ -142,8 +116,16 @@ def log_mode(argument):
 
 if __name__ == '__main__':
     args = parse_args()
+    # global params
     if args.workdir:
         os.chdir(args.workdir)
+    if args.logfile:
+        runner_config.LOGGER_FILE = args.logfile
+    if args.loglevel:
+        runner_config.LOGGER_LEVEL = args.loglevel
+    if args.celery:
+        runner_config.CELERY_BIN = args.celery
+    # mode
     if args.mode == 'worker':
         re = worker_mode(args)
     elif args.mode == 'inspect':
