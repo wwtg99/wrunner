@@ -1,5 +1,4 @@
 from celery_app import app
-from celery_app import logger
 import time
 import datetime
 import utils
@@ -34,9 +33,8 @@ def cmd(args):
     res = ''
     if c:
         print('run command %s' % c)
-        logger.info('run command %s' % c)
         res = utils.popen(c)
-        logger.info(res)
+        print(res)
     return res
 
 

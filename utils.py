@@ -17,4 +17,3 @@ def popen(cmd):
     signal.signal(signal.SIGTERM, handle_signal)
     child.wait()
     return child.communicate()
-

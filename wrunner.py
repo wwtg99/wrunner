@@ -1,3 +1,4 @@
+#! /bin/python
 import argparse
 import runner_config
 import json
@@ -28,11 +29,11 @@ def worker_mode(argument):
     c = [celery_bin, 'worker', '-A celery_app']
     if argument.celery_config:
         c.append('--config=%s' % argument.celery_config)
-    if argument.loglevel:
+    if runner_config.LOGGER_LEVEL:
         c.append('--loglevel=%s' % runner_config.LOGGER_LEVEL)
     else:
         c.append('--loglevel=INFO')
-    if argument.logfile:
+    if runner_config.LOGGER_FILE:
         c.append('--logfile=%s' % runner_config.LOGGER_FILE)
     if argument.beat:
         c.append('--beat')
@@ -58,10 +59,10 @@ def beat_mode(argument):
     cmd = [celery_bin, 'beat', '-A celery_app']
     if argument.celery_config:
         cmd.append('--config=%s' % argument.celery_config)
-    if argument.loglevel:
-        cmd.append('--loglevel=%s' % argument.loglevel)
-    if argument.logfile:
-        cmd.append('--logfile=%s' % argument.logfile)
+    if runner_config.LOGGER_LEVEL:
+        cmd.append('--loglevel=%s' % runner_config.LOGGER_LEVEL)
+    if runner_config.LOGGER_FILE:
+        cmd.append('--logfile=%s' % runner_config.LOGGER_FILE)
     if argument.schedule:
         cmd.append('--schedule=%s' % argument.schedule)
     c = ' '.join(cmd)
