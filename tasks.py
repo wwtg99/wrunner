@@ -192,6 +192,7 @@ def export_docker(args):
     c = []
     dump_bin = args['docker'] if 'docker' in args else 'docker'
     c.append(dump_bin)
+    c.append('export')
     if 'output' in args:
         outf = args['output']
         if outf.find('{date}') >= 0:

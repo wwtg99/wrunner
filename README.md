@@ -9,6 +9,7 @@ Distributed Task Queue and Scheduler based on Celery.
 
 ## Definition
 - celery_app.py: main celery application
+- celeryconfig.py: config module for celery
 - runner_config.py: global config module
 - tasks.py: default task module
 - wrunner.py: runner client
